@@ -1,52 +1,86 @@
-const App = () => {
- 
-    console.log("just making some changes to the react component")
-  const timenow = new Date()
-  const a = 10
-  const b = 20
-  console.log("a and b is :" , a+b)
+const App = () =>
 
+
+
+
+{
+
+  
+//define constants as array of items ( name ; number of exercises)
+const course_header = "Half stack development"
+// <Header name={course_header}/>
+
+const course_parts = [
+  { name: 'Fundamentals of React', exercises: 10 },
+  { name: 'Using props to pass data', exercises: 7 },
+  { name: 'State of a component', exercises: 14}
+]
+
+  const total_courses = course_parts[0].exercises +  course_parts[1].exercises
+
+
+const containerStyle = {
+  fontFamily: 'Arial, sans-serif',
+  maxWidth: '600px',
+  margin: 'auto',
+  padding: '20px',
+  textAlign: 'center',
+  border: '1px solid #ccc',
+  borderRadius: '8px',
+  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+};
+
+return(
+  <div  style={containerStyle}>  
+    
+    <Header name={course_header}/>
+
+    <Content parts={course_parts} />
+<hr></hr>
+      <Total total = {total_courses}/>
+  </div>
+  
+  
+
+)
+
+
+}
+
+const Header = (props) =>{
+  console.log(props)
+return (
+  <h1>{props.name}</h1>
+)
+}
+
+
+const Part = ({ name, exercises }) => {
+  return (
+    <p>
+      {name}: {exercises}
+    </p>
+  );
+};
+
+const Content = ({ parts }) => {
   return (
     <div>
-    <p>Hello world, The time is <br    /><br/> : {timenow.toString()}</p>
-    <p> Funilly enough this is a react web component called "App"</p>
-    <p> 
-    {a} + {b} is equal to {a+b}
-    </p>
-    <Hello/>
-
-
-    <p>Here im using a props staement to pass in to the function compoent named names_props:</p>
-    <Name_props name = "harun"/>
-    <Name_props name = "Hheisenberg"/>
-
-
+      {parts.map((part, index) => (
+        <Part key={index} name={part.name} exercises={part.exercises} />
+      ))}
     </div>
-  )
-}
+  );
+};
 
-const Hello = () =>
-{
-console.log("This is another component called Hello")
-return (
-  <div>
-    <p>Hello world  this is another react component.</p>
-  </div>
-)
+  const Total = (props) =>{
+    console.log(props)
+    return (
+      
+      <p>Total number of parts: {props.total}</p>
+    )
+    }
 
-}
-
-const Name_props = (props) =>{
-
-console.log("Here theres a component that uses a properties (props) statement to pass arguments in the function component")
-return (
-<div>
-  <p>hello to the person {props.name}</p>
-</div>
-
-
-)
-}
 
 
 export default App
