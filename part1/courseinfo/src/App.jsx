@@ -1,8 +1,6 @@
 const App = () =>
-
 {
-
-  //styling for containers
+ //styling for containers
 const containerStyle = {
   fontFamily: 'Arial, sans-serif',
   maxWidth: '600px',
@@ -14,43 +12,35 @@ const containerStyle = {
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
 };
 
- 
-//define constants as array of items ( name ; number of exercises)
-const course_header = "Half stack development"
-// <Header name={course_header}/>
-
-const course_parts = [
-  { name: 'Fundamentals of React', exercises: 10 },
-  { name: 'Using props to pass data', exercises: 7 },
-  { name: 'State of a component', exercises: 14}
-]
-
-// Now using Objects for course parts
-
-const part1 = { name: 'Fundamentals of React', exercises: 10};
-const part2 = { name: 'Using props to pass data', exercises: 7};
-const part3 =  { name: 'State of a component', exercises: 14}
-
-
-const total_courses = part1.exercises + part2.exercises + part3.exercises  
-
+const course = {
+  name: 'Half Stack application development',
+  parts: [
+    {
+      name: 'Fundamentals of React',
+      exercises: 10
+    },
+    {
+      name: 'Using props to pass data',
+      exercises: 7
+    },
+    {
+      name: 'State of a component',
+      exercises: 14
+    }
+  ]
+}
 
 return(
   <div  style={containerStyle}>  
     
-    <Header name={course_header}/>
-
-    <Part name = {part1.name} exercises={part1.exercises}></Part>
-    <Part name = {part2.name} exercises={part2.exercises}></Part>
-    <Part name = {part3.name} exercises={part3.exercises}></Part>
-<hr></hr>
-      <Total total = {total_courses}/>
+    <Header name={course.name}/>
+    <Content parts = {course.parts}/> 
+    <hr/> 
+    <Total  parts = {course.parts}/>
   </div>
   
 
 )
-//<Content parts={course_parts} />
-
 
 
 
@@ -59,7 +49,7 @@ return(
 }
 
 const Header = (props) =>{
-  console.log(props)
+  console.log("The heaader prop", props)
 return (
   <h1>{props.name}</h1>
 )
@@ -73,26 +63,28 @@ const Part = ({ name, exercises }) => {
   );
 };
 
-const Content = ({ part1 }) => {
+const Content = (props) => {
+
+  console.log("content param", props)
+
+console.log(props.parts[0].name)
   return (
     <div>
-
-      
-      {parts.map((part, index) => (
-        <Part key={index} name={part.name} exercises={part.exercises} />
-      ))}
-    </div>
+     {<Part name = {props.parts[0].name} exercises={props.parts[0].exercises}/>}
+     {<Part name = {props.parts[1].name} exercises={props.parts[1].exercises}/>}
+     {<Part name = {props.parts[2].name} exercises={props.parts[2].exercises}/>}
+      </div>
   );
 };
 
   const Total = (props) =>{
     console.log(props)
-    return (
-      
-      <p>Total number of parts: {props.total}</p>
-    )
-    }
 
+    return (
+    
+      <p>{props.parts[0].exercises+props.parts[1].exercises+props.parts[2].exercises}</p>
+    )
+}
 
 
 export default App
