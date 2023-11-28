@@ -1,24 +1,8 @@
 const App = () =>
 
-
-
-
 {
 
-  
-//define constants as array of items ( name ; number of exercises)
-const course_header = "Half stack development"
-// <Header name={course_header}/>
-
-const course_parts = [
-  { name: 'Fundamentals of React', exercises: 10 },
-  { name: 'Using props to pass data', exercises: 7 },
-  { name: 'State of a component', exercises: 14}
-]
-
-  const total_courses = course_parts[0].exercises +  course_parts[1].exercises
-
-
+  //styling for containers
 const containerStyle = {
   fontFamily: 'Arial, sans-serif',
   maxWidth: '600px',
@@ -30,20 +14,47 @@ const containerStyle = {
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
 };
 
+ 
+//define constants as array of items ( name ; number of exercises)
+const course_header = "Half stack development"
+// <Header name={course_header}/>
+
+const course_parts = [
+  { name: 'Fundamentals of React', exercises: 10 },
+  { name: 'Using props to pass data', exercises: 7 },
+  { name: 'State of a component', exercises: 14}
+]
+
+// Now using Objects for course parts
+
+const part1 = { name: 'Fundamentals of React', exercises: 10};
+const part2 = { name: 'Using props to pass data', exercises: 7};
+const part3 =  { name: 'State of a component', exercises: 14}
+
+
+const total_courses = part1.exercises + part2.exercises + part3.exercises  
+
+
 return(
   <div  style={containerStyle}>  
     
     <Header name={course_header}/>
 
-    <Content parts={course_parts} />
+    <Part name = {part1.name} exercises={part1.exercises}></Part>
+    <Part name = {part2.name} exercises={part2.exercises}></Part>
+    <Part name = {part3.name} exercises={part3.exercises}></Part>
 <hr></hr>
       <Total total = {total_courses}/>
   </div>
   
-  
 
 )
+//<Content parts={course_parts} />
 
+
+
+
+// All of the components :
 
 }
 
@@ -54,7 +65,6 @@ return (
 )
 }
 
-
 const Part = ({ name, exercises }) => {
   return (
     <p>
@@ -63,9 +73,11 @@ const Part = ({ name, exercises }) => {
   );
 };
 
-const Content = ({ parts }) => {
+const Content = ({ part1 }) => {
   return (
     <div>
+
+      
       {parts.map((part, index) => (
         <Part key={index} name={part.name} exercises={part.exercises} />
       ))}
