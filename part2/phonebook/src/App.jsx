@@ -1,20 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Filter from "./components/Filter";
+import Person from "./components/Persons";
+import Addperson from "./components/PersonForm";
+import axios from "axios";
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "040-123456", id: 1 },
-    { name: "Ada Lovelace", number: "39-44-5323523", id: 2 },
-    { name: "Dan Abramov", number: "12-43-234345", id: 3 },
-    { name: "Mary Poppendieck", number: "39-23-6423122", id: 4 },
-  ]);
+  const [persons, setPersons] = useState([]);
+
+  const getPeople = () => {
+    axios.get("http://localhost:3001/persons").then((response) => {
+      setPersons(response.data);
+      console.log(response.data);
+    });
+  };
+
+  useEffect(getPeople, []);
 
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearchChange = (event) => {
-    console.log(event.target.value);
     setSearchTerm(event.target.value);
   };
 
@@ -23,12 +29,10 @@ const App = () => {
   );
 
   const handleNameChange = (event) => {
-    console.log(event.target.value);
     setNewName(event.target.value);
   };
 
   const handleNumberChange = (event) => {
-    console.log(event.target.value);
     setNewNumber(event.target.value);
   };
 
@@ -56,11 +60,20 @@ const App = () => {
         number: newNumber,
       };
 
+      const request = axios.post(`http://localhost:3001/persons`, PersonObject);
       setPersons(persons.concat(PersonObject));
       setNewName("");
       setNewNumber("");
+      return request.then((response) => response.data);
     }
   };
+
+  const deletePerson = (id) => {
+    console.log(`just removed ${id}`);
+    const request = axios.delete(`http://localhost:3001/${id}`);
+    return request.then((response) => response.data);
+  };
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -73,39 +86,9 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h2>Numbers</h2>
-      <Person p={filteredPersons} />
+      <Person person={filteredPersons} />
       <Filter searchTerm={searchTerm} handleSearchChange={handleSearchChange} />
     </div>
-  );
-};
-
-const Person = (props) => {
-  return (
-    <ul>
-      {props.p.map((persons) => {
-        return (
-          <li key={persons.name}>
-            {persons.name} : {persons.number}
-          </li>
-        );
-      })}
-    </ul>
-  );
-};
-
-const Addperson = (props) => {
-  return (
-    <form onSubmit={props.addPerson}>
-      <div>
-        name: <input value={props.newName} onChange={props.handleNameChange} />
-        Number:{" "}
-        <input value={props.newNumber} onChange={props.handleNumberChange} />
-      </div>
-
-      <div>
-        <button type="submit">add</button>
-      </div>
-    </form>
   );
 };
 

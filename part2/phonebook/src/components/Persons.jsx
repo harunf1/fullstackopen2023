@@ -3,10 +3,11 @@ import React from "react";
 const Person = (props) => {
   return (
     <ul>
-      {props.p.map((persons) => {
+      {props.person.map((persons) => {
         return (
           <li key={persons.name}>
             {persons.name} : {persons.number}
+            <button>delete</button>
           </li>
         );
       })}
