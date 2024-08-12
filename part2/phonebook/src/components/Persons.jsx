@@ -5,9 +5,15 @@ const Person = (props) => {
     <ul>
       {props.person.map((persons) => {
         return (
-          <li key={persons.name}>
+          <li key={persons.id}>
             {persons.name} : {persons.number}
-            <button>delete</button>
+            <button
+              onClick={() => {
+                props.removePerson(persons.id);
+              }}
+            >
+              delete
+            </button>
           </li>
         );
       })}
