@@ -3,7 +3,7 @@ import Filter from "./components/Filter";
 import Person from "./components/Persons";
 import Addperson from "./components/PersonForm";
 import adjustpeople from "./services/adjustpeople";
-import Notifitcation from "./components/errormessage";
+import Notifitcation from "./components/errorMessage";
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
