@@ -11,7 +11,7 @@ blogsRouter.get("/", async (request, response) => {
 
 blogsRouter.post("/", async (request, response) => {
   const { title, url } = request.body;
-
+  console.log(request.token);
   const decodeToken = jwt.verify(request.token, JWT_SECRET);
   if (!decodeToken) {
     return response.status(404).json({ error: "invalid token" });
@@ -25,14 +25,19 @@ blogsRouter.post("/", async (request, response) => {
     return response.status(400).json({ error: "Title and URL are required" });
   }
 
-  const blog = new Blog(request.body);
-
+  const blog = new Blog({
+    title,
+    url,
+    author: user.name,
+    likes: request.body.likes || 0,
+    user: user._id,
+  });
   const result = await blog.save();
   response.status(201).json(result);
 });
 
 blogsRouter.delete("/:id", async (request, response) => {
-  const decodeToken = jwt.verify(request.token, JWT_SECRET);
+  /*const decodeToken = jwt.verify(request.token, JWT_SECRET);
   if (!decodeToken) {
     return response.status(404).json({ error: "invalid token" });
   }
@@ -41,18 +46,19 @@ blogsRouter.delete("/:id", async (request, response) => {
     return response.status(400).json({ error: "invalid user token" });
   }
 
-  const { id } = request.params;
+  
   if (user._id !== id) {
     return response
       .status(401)
       .json({ error: "unauthorised to delete this note " });
   }
-
+*/
+  const { id } = request.params;
   const deletedBlog = await Blog.findByIdAndDelete(id);
   if (!deletedBlog) {
     return response.status(404).json({ error: "Blog not found" });
   }
-  response.status(204).end();
+  response.status(200).json({ message: "blog deleted" });
 });
 
 blogsRouter.put("/:id", async (request, response) => {
