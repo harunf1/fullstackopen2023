@@ -6,6 +6,13 @@ const blogTestHelper = require("./blogTestHelper");
 const supertest = require("supertest");
 const app = require("../app");
 const api = supertest(app);
+const globalSetup = require("./setup");
+let token;
+
+test.before(async () => {
+  token = await globalSetup();
+  console.log("token", token);
+});
 
 beforeEach(async () => {
   await Blog.deleteMany({});
@@ -23,6 +30,7 @@ describe("TEST FOR GETTING BLOGS", () => {
       .expect(200)
       .expect("Content-Type", /application\/json/);
   });
+
   test("unique identifier property of the blog posts is named id", async () => {
     const response = await api.get("/api/blogs");
     const blogs = response.body;
@@ -35,7 +43,7 @@ describe("TEST FOR GETTING BLOGS", () => {
   });
 });
 
-describe("TEST FOR POSTING BLOGS", () => {
+describe("TEST FOR POSTING BLOGS", async () => {
   test("a valid blog can be added", async () => {
     const newBlog = {
       title: "Test Blog",
@@ -49,6 +57,7 @@ describe("TEST FOR POSTING BLOGS", () => {
     await api
       .post("/api/blogs")
       .send(newBlog)
+      .set({ Authorization: `Bearer ${token}` })
       .expect(201)
       .expect("Content-Type", /application\/json/);
 
@@ -74,7 +83,13 @@ describe("TEST FOR POSTING BLOGS", () => {
       url: "http://testblog.com",
     };
 
-    await api.post("/api/blogs").send(newBlog).expect(201);
+    const response = await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .set({ Authorization: token })
+      .expect(201);
+
+    assert.strictEqual(response.body.likes, 0, "Likes should default to 0");
   });
 });
 
@@ -99,41 +114,42 @@ describe("TEST FOR DELETING BLOGS", () => {
       "The deleted blog should not be in the database"
     );
   });
+});
 
-  describe("TEST FOR UPDATING BLOGS", () => {
-    test("a blog can be updated", async () => {
-      const blogsAtStart = await blogTestHelper.blogsInDb();
-      const blogToUpdate = blogsAtStart[0];
+describe("TEST FOR UPDATING BLOGS", () => {
+  test("a blog can be updated", async () => {
+    const blogsAtStart = await blogTestHelper.blogsInDb();
+    const blogToUpdate = blogsAtStart[0];
 
-      const updatedBlog = {
-        ...blogToUpdate,
-        likes: blogToUpdate.likes + 1,
-      };
+    const updatedBlog = {
+      ...blogToUpdate,
+      likes: blogToUpdate.likes + 1,
+    };
 
-      await api
-        .put(`/api/blogs/${blogToUpdate.id}`)
-        .send(updatedBlog)
-        .expect(200);
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedBlog)
+      .expect(200);
 
-      const blogsAtEnd = await blogTestHelper.blogsInDb();
-      const updatedBlogInDb = blogsAtEnd.find(
-        (blog) => blog.id === blogToUpdate.id
-      );
+    const blogsAtEnd = await blogTestHelper.blogsInDb();
+    const updatedBlogInDb = blogsAtEnd.find(
+      (blog) => blog.id === blogToUpdate.id
+    );
 
-      assert.strictEqual(
-        updatedBlogInDb.likes,
-        blogToUpdate.likes + 1,
-        "The number of likes should be increased by 1"
-      );
+    assert.strictEqual(
+      updatedBlogInDb.likes,
+      blogToUpdate.likes + 1,
+      "The number of likes should be increased by 1"
+    );
 
-      assert.deepStrictEqual(
-        updatedBlogInDb,
-        updatedBlog,
-        "The updated blog should match the sent data"
-      );
-    });
+    assert.deepStrictEqual(
+      updatedBlogInDb,
+      updatedBlog,
+      "The updated blog should match the sent data"
+    );
   });
-  after(async () => {
-    await mongoose.connection.close();
-  });
+});
+
+after(async () => {
+  await mongoose.connection.close();
 });

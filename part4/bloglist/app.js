@@ -3,6 +3,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
 
+require("express-async-errors");
+
 const config = require("./utils/config");
 const middleware = require("./utils/middleware.js");
 
@@ -10,7 +12,6 @@ const blogsRouter = require("./controllers/blogsRoutes.js");
 const usersRouter = require("./controllers/usersRouter.js");
 const loginRouter = require("./controllers/login.js");
 
-require("express-async-errors");
 const app = express();
 
 mongoose

@@ -3,28 +3,19 @@ const Blog = require("../models/blogs");
 const { JWT_SECRET } = require("../utils/config");
 const User = require("../models/users");
 const jwt = require("jsonwebtoken");
+const middleware = require("../utils/middleware");
 
 blogsRouter.get("/", async (request, response) => {
   const blogs = await Blog.find({}).populate("user", { username: 1, name: 1 });
   response.json(blogs);
 });
 
-blogsRouter.post("/", async (request, response) => {
+blogsRouter.post("/", middleware.userExtractor, async (request, response) => {
   const { title, url } = request.body;
-  console.log(request.token);
-  const decodeToken = jwt.verify(request.token, JWT_SECRET);
-  if (!decodeToken) {
-    return response.status(404).json({ error: "invalid token" });
-  }
-  const user = await User.findById(decodeToken.id);
-  if (!user) {
-    return response.status(400).json({ error: "invalid user token" });
-  }
-
   if (!title || !url) {
     return response.status(400).json({ error: "Title and URL are required" });
   }
-
+  const user = request.user;
   const blog = new Blog({
     title,
     url,
@@ -32,39 +23,41 @@ blogsRouter.post("/", async (request, response) => {
     likes: request.body.likes || 0,
     user: user._id,
   });
+
   const result = await blog.save();
+  user.blogs = user.blogs.concat(result._id);
+  savedtouser = await user.save();
   response.status(201).json(result);
 });
 
-blogsRouter.delete("/:id", async (request, response) => {
-  /*const decodeToken = jwt.verify(request.token, JWT_SECRET);
-  if (!decodeToken) {
-    return response.status(404).json({ error: "invalid token" });
-  }
-  const user = await User.findById(decodeToken.id);
-  if (!user) {
-    return response.status(400).json({ error: "invalid user token" });
-  }
+blogsRouter.delete(
+  "/:id",
+  middleware.userExtractor,
+  async (request, response) => {
+    const user = request.user;
+    const { id } = request.params;
 
-  
-  if (user._id !== id) {
-    return response
-      .status(401)
-      .json({ error: "unauthorised to delete this note " });
+    const blogToDel = await Blog.findById(id);
+    if (!blogToDel) {
+      return response.status(404).json({ error: "Blog not found" });
+    }
+    if (blogToDel.user._id.toString() === user._id.toString()) {
+      await blogToDel.deleteOne({ _id: id });
+      user.blogs = user.blogs.filter((blogId) => blogId.toString() !== id);
+      await user.save();
+      response.status(200).json({ message: "blog deleted", blogToDel });
+    } else {
+      response.status(401).json({ error: "Unauthrised to take this action" });
+    }
   }
-*/
-  const { id } = request.params;
-  const deletedBlog = await Blog.findByIdAndDelete(id);
-  if (!deletedBlog) {
-    return response.status(404).json({ error: "Blog not found" });
-  }
-  response.status(200).json({ message: "blog deleted" });
-});
+);
 
-blogsRouter.put("/:id", async (request, response) => {
+blogsRouter.put("/:id", middleware.userExtractor, async (request, response) => {
   const { id } = request.params;
   const { title, author, url, likes } = request.body;
-
+  if (blogToDel.user._id.toString() !== user._id.toString()) {
+    rresponse.status(401).json({ error: "Unauthrised to take this action" });
+  }
   const updatedBlog = await Blog.findByIdAndUpdate(
     id,
     { title, author, url, likes },

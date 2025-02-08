@@ -1,4 +1,7 @@
 const logger = require("./logger");
+const User = require("../models/users");
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../utils/config");
 
 const tokenExtractor = (req, res, next) => {
   if (req.path === "/api/login") {
@@ -7,11 +10,26 @@ const tokenExtractor = (req, res, next) => {
   const auth = req.get("Authorization");
   if (auth && auth.startsWith("Bearer ")) {
     req.token = auth.replace("Bearer ", "");
-    logger.info(req.token);
   } else {
     req.token = null;
   }
   next();
+};
+
+const userExtractor = async (request, response, next) => {
+  if (request.token === null) {
+    response.status(404).json({ error: "No Token provided" });
+  } else {
+    const decodeToken = jwt.verify(request.token, JWT_SECRET);
+
+    const user = await User.findById(decodeToken.id);
+    if (!user) {
+      return response.status(400).json({ error: "invalid user token" });
+    }
+    request.user = user;
+
+    next();
+  }
 };
 
 const unknownEndpoint = (request, response) => {
@@ -36,6 +54,9 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === "JsonWebTokenError") {
     return response.status(401).json({ error: "Invalid token" });
   }
+  if (error.name === "TokenExpiredError") {
+    return response.status(401).json({ error: "Token expired" });
+  }
 
   if (error.message === "Token missing or invalid") {
     return response.status(401).json({ error: "Token missing or invalid" });
@@ -47,7 +68,7 @@ const errorHandler = (error, request, response, next) => {
       .json({ error: "Token invalid: missing user ID" });
   }
 
-  console.error(error.message);
+  console.error(`Error on ${request.method} ${request.path}: ${error.message}`);
   return response.status(500).json({ error: "Internal server error" });
 };
 
@@ -55,4 +76,5 @@ module.exports = {
   unknownEndpoint,
   errorHandler,
   tokenExtractor,
+  userExtractor,
 };

@@ -5,25 +5,21 @@ const helper = require("./userTestHelper");
 const { test, describe, beforeEach, after } = require("node:test");
 const assert = require("node:assert");
 const supertest = require("supertest");
-
+const globalSetup = require("./setup");
 // importing our entire http server and passing it to supertest
 const app = require("../app");
+const { globalAgent } = require("node:http");
 const api = supertest(app);
+
+let token;
+test.before(async () => {
+  token = await globalSetup();
+});
 
 // test suite starts with describe:
 
 describe("TEST SUITE FOR USERS ", () => {
-  beforeEach(async () => {
-    await User.deleteMany({});
-    const passwordHash = await bcrypt.hash("password", 10);
-    const user = new User({
-      username: "root",
-      passwordHash,
-    });
-    await user.save();
-  });
-
-  test("creation succeeds with new usernamee", async () => {
+  test("creation succeeds with new username", async () => {
     const start = await helper.usersInDb();
     const newUser = {
       username: "harunf1",
