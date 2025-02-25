@@ -55,9 +55,7 @@ blogsRouter.delete(
 blogsRouter.put("/:id", middleware.userExtractor, async (request, response) => {
   const { id } = request.params;
   const { title, author, url, likes } = request.body;
-  if (blogToDel.user._id.toString() !== user._id.toString()) {
-    rresponse.status(401).json({ error: "Unauthrised to take this action" });
-  }
+
   const updatedBlog = await Blog.findByIdAndUpdate(
     id,
     { title, author, url, likes },

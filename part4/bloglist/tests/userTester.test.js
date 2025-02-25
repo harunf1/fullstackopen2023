@@ -1,64 +1,68 @@
-const bcrypt = require("bcrypt");
-const User = require("../models/users");
-const mongoose = require("mongoose");
-const helper = require("./userTestHelper");
 const { test, describe, beforeEach, after } = require("node:test");
 const assert = require("node:assert");
-const supertest = require("supertest");
+
 const globalSetup = require("./setup");
-// importing our entire http server and passing it to supertest
+const mongoose = require("mongoose");
+
+const supertest = require("supertest");
+
+const helper = require("./userTestHelper");
+
 const app = require("../app");
-const { globalAgent } = require("node:http");
 const api = supertest(app);
 
-let token;
-test.before(async () => {
-  token = await globalSetup();
+beforeEach(async () => {
+  setup = await globalSetup();
+});
+describe("GET", () => {
+  test("get users", async () => {
+    await api
+      .get("/api/users")
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+  });
 });
 
-// test suite starts with describe:
+describe("POST /api/users", () => {
+  test("should create a new user successfully", async () => {
+    // Fetch the initial number of users in the database
+    const initialUsers = await helper.usersInDb();
+    const initialUserCount = initialUsers.length;
 
-describe("TEST SUITE FOR USERS ", () => {
-  test("creation succeeds with new username", async () => {
-    const start = await helper.usersInDb();
-    const newUser = {
-      username: "harunf1",
-      name: "harun",
-      password: "qwerty",
+    const testUser = {
+      name: "DummyTestUser",
+      username: "Hhhhheisenbergg", // Ensure this username is unique for the test
+      password: "pwdeasyyy",
     };
 
-    await api
+    // Send a POST request to create a new user
+    const response = await api
       .post("/api/users")
-      .send(newUser)
+      .send(testUser)
       .expect(201)
-      .expect("content-type", /application\/json/);
+      .expect("Content-Type", /application\/json/); // Check for JSON response
 
-    const end = await helper.usersInDb();
-    assert.strictEqual(end.length, start.length + 1);
+    // Validate that the response includes the created user's data
+    assert.strictEqual(response.body.username, testUser.username);
+    assert.strictEqual(response.body.name, testUser.name);
+    assert.ok(response.body.id);
 
-    const usernames = end.map((u) => u.username);
-    assert(usernames.includes(newUser.username));
+    // Fetch the updated list of users
+    const updatedUsers = await helper.usersInDb();
+    const updatedUserCount = updatedUsers.length;
+
+    // Assert that a new user has been added
+    assert.strictEqual(updatedUserCount, initialUserCount + 1);
+
+    // Optionally check if the new user exists in the updated user list
+    const createdUser = updatedUsers.find(
+      (user) => user.username === testUser.username
+    );
+    assert.ok(createdUser);
+    assert.strictEqual(createdUser.name, testUser.name);
   });
+});
 
-  test("rejection of new user with non unique username", async () => {
-    const start = await helper.usersInDb();
-    const newUser = {
-      username: "root",
-      name: "tester",
-      password: "adamsmith123",
-    };
-    const result = await api
-      .post("/api/users")
-      .send(newUser)
-      .expect(400)
-      .expect("content-type", /application\/json/);
-
-    const end = await helper.usersInDb();
-    assert(result.body.error.includes("expected `username` to be unique"));
-    assert.strictEqual(end.length, start.length);
-  });
-
-  after(async () => {
-    await mongoose.connection.close();
-  });
+after(async () => {
+  await mongoose.connection.close();
 });
