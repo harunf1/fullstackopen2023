@@ -1,18 +1,52 @@
 import Note from "./components/Note";
 import { useState, useEffect } from "react";
 import noteService from "./services/notes";
+import loginService from "./services/login";
+import Notification from "./components/Notification";
 // import "./index.css";
 
 const App = (props) => {
+  const [errorMessage, setErrorMessage] = useState(null);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
   const [showAll, setShowAll] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     noteService.getAll().then((initialNotes) => {
       setNotes(initialNotes);
     });
   }, []);
+
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem("LoggedNoteappUser");
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      noteService.setToken(user.token);
+      console.log("user present in local storage");
+    }
+  }, []);
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+
+    try {
+      const user = await loginService.login({ username, password });
+      setUser(user);
+      setUsername("");
+      setPassword("");
+      noteService.setToken(user.token);
+      window.localStorage.setItem("LoggedNoteappUser", JSON.stringify(user));
+    } catch (exception) {
+      setErrorMessage(`wrong creds ${exception}`);
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000);
+    }
+  };
 
   const addNote = (event) => {
     event.preventDefault();
@@ -27,7 +61,8 @@ const App = (props) => {
         setNewNote("");
       })
       .catch((error) => {
-        alert(`error creating note`);
+        alert(`error creating note
+          ${error}`);
       });
   };
 
@@ -54,13 +89,50 @@ const App = (props) => {
       setNotes(notes.filter((note) => note.id !== id));
     });
   };
-  return (
+
+  const loginForm = () => (
+    <form onSubmit={handleLogin}>
+      <div>
+        username
+        <input
+          type="text"
+          value={username}
+          name="Username"
+          onChange={({ target }) => setUsername(target.value)}
+        />
+      </div>
+      <div>
+        password
+        <input
+          type="password"
+          value={password}
+          name="Password"
+          onChange={({ target }) => setPassword(target.value)}
+        />
+      </div>
+      <button type="submit">login</button>
+    </form>
+  );
+
+  const noteForm = () => (
     <div>
-      <h1>Notes</h1>
-      <h2>has my auto deploy frontend w3orked 23</h2>
+      <form onSubmit={addNote}>
+        add Note {user.name}
+        <input value={newNote} onChange={handleNoteChange} />
+        <button type="submit">save</button>
+      </form>
       <button onClick={() => setShowAll(!showAll)}>
         show {showAll ? "important" : "all"}
       </button>
+    </div>
+  );
+
+  return (
+    <div>
+      <Notification message={errorMessage}></Notification>
+
+      <h1>Notes</h1>
+      {user === null ? loginForm() : noteForm()}
 
       <ul>
         {notesToShow.map((note) => (
@@ -72,10 +144,6 @@ const App = (props) => {
           />
         ))}
       </ul>
-      <form onSubmit={addNote}>
-        <input value={newNote} onChange={handleNoteChange} />
-        <button type="submit">save</button>
-      </form>
     </div>
   );
 };

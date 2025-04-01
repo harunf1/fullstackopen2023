@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt");
 const User = require("../models/users");
 const loginRouter = require("express").Router();
 const { JWT_SECRET } = require("../utils/config");
+
+
 loginRouter.post("/", async (request, response) => {
   const { username, password } = request.body;
 
