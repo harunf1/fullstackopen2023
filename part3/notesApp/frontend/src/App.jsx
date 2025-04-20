@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import noteService from "./services/notes";
 import loginService from "./services/login";
 import Notification from "./components/Notification";
 import LoginForm from "./components/LoginForm";
 import NoteForm from "./components/NoteForm";
-import Togglable from "./components/Togglebale";
+import Togglable from "./components/Toggleble";
 import NotesList from "./components/noteList";
 import { handleError } from "./helpers/errorHelper";
 
@@ -12,6 +12,8 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [notes, setNotes] = useState([]);
   const [user, setUser] = useState(null);
+
+  const noteFormRef = useRef();
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -56,6 +58,7 @@ const App = () => {
     try {
       const returnedNote = await noteService.create(noteObject);
       setNotes(notes.concat(returnedNote));
+      noteFormRef.current.toggleVisibility();
     } catch (exception) {
       handleError(setErrorMessage, exception);
     }
@@ -94,7 +97,7 @@ const App = () => {
           <LoginForm handleLogin={handleLogin} />
         </Togglable>
       ) : (
-        <Togglable buttonLabel="Add a new Note">
+        <Togglable buttonLabel="Add a new note" ref={noteFormRef}>
           <NoteForm addnote={addNote} />
         </Togglable>
       )}
